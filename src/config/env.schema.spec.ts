@@ -11,7 +11,7 @@ describe('envSchema', () => {
       NODE_ENV: 'production',
       PORT: 3000,
       LOG_LEVEL: 'log',
-      TRUST_PROXY: false,
+      TRUST_PROXY: 0,
       CORS_ORIGINS: '*',
       RATE_LIMIT_MAX: 120,
       DATABASE_POOL_MAX: 10,
@@ -46,16 +46,32 @@ describe('envSchema', () => {
   });
 
   it.each([
-    ['false', false],
-    ['true', true],
+    ['0', 0],
     ['1', 1],
-    ['loopback', 'loopback'],
-  ])('parses TRUST_PROXY=%s', (value, expected) => {
+    ['3', 3],
+    ['false', 0],
+    ['', 0],
+  ])('parses TRUST_PROXY=%j as %i hops', (value, expected) => {
     expect(
       envSchema.parse({ DATABASE_URL, NODE_ENV, TRUST_PROXY: value })
         .TRUST_PROXY,
     ).toBe(expected);
   });
+
+  it.each(['true', 'loopback', '4', '-1', '1,2', 'banana'])(
+    'rejects TRUST_PROXY=%s',
+    (value) => {
+      const result = envSchema.safeParse({
+        DATABASE_URL,
+        NODE_ENV,
+        TRUST_PROXY: value,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error?.issues[0]?.path).toEqual(['TRUST_PROXY']);
+      expect(result.error?.issues[0]?.message).toContain('X-Forwarded-For');
+    },
+  );
 
   it('parses a list of CORS origins', () => {
     expect(
