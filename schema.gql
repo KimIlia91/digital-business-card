@@ -1,0 +1,127 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+"""Position in the work history"""
+type Experience {
+  """Key results achieved in the role"""
+  achievements: [String!]!
+  company: String!
+
+  """Last day of the period; null while the position is current"""
+  endDate: LocalDate
+  id: ID!
+
+  """Whether the position is held now"""
+  isCurrent: Boolean!
+  location: String
+  position: String!
+
+  """First day of the period"""
+  startDate: LocalDate!
+
+  """Scope of the role"""
+  summary: String
+
+  """Technologies used in the role"""
+  technologies: [Skill!]!
+}
+
+"""Kind of a professional resource; lets clients pick an icon"""
+enum LinkKind {
+  EMAIL
+  GITHUB
+  LINKEDIN
+  OTHER
+  TELEGRAM
+  WEBSITE
+}
+
+"""Calendar date without time, ISO 8601 (YYYY-MM-DD)"""
+scalar LocalDate
+
+"""Owner of the digital business card"""
+type Profile {
+  """URL of the profile photo"""
+  avatarUrl: String
+
+  """Short "about me" text"""
+  description: String!
+
+  """Work history: current positions first, then most recent"""
+  experience: [Experience!]!
+
+  """
+  One-line professional title, e.g. "Backend Developer"
+  """
+  headline: String!
+  id: ID!
+
+  """GitHub, LinkedIn and other professional resources"""
+  links: [ProfileLink!]!
+  location: String
+  name: String!
+
+  """Portfolio in display order"""
+  projects: [Project!]!
+
+  """Skills in display order"""
+  skills(
+    """Return only skills of this category"""
+    category: SkillCategory
+  ): [Skill!]!
+
+  """Public identifier of the profile"""
+  slug: String!
+}
+
+"""Link to GitHub, LinkedIn or another professional resource"""
+type ProfileLink {
+  id: ID!
+  kind: LinkKind!
+
+  """Human-readable caption"""
+  label: String!
+  url: String!
+}
+
+"""Project from the portfolio"""
+type Project {
+  description: String
+  id: ID!
+  name: String!
+
+  """Link to the source code repository"""
+  repositoryUrl: String
+
+  """Technologies the project is built with"""
+  technologies: [Skill!]!
+
+  """Link to the running project (demo, website, store page)"""
+  url: String
+}
+
+type Query {
+  """Business card profile. Without `slug` returns the owner of the card."""
+  profile(slug: String): Profile
+}
+
+"""Professional skill or technology"""
+type Skill {
+  category: SkillCategory!
+  id: ID!
+  name: String!
+}
+
+"""Group a skill belongs to on the card"""
+enum SkillCategory {
+  API
+  BACKEND
+  DATABASE
+  FRONTEND
+  INFRASTRUCTURE
+  LANGUAGE
+  PRACTICE
+  TESTING
+  TOOLING
+}
