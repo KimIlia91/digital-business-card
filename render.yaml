@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: digital-business-card
+    # Builds the repository's Dockerfile; the entrypoint applies migrations and
+    # the seed on every start, so no separate release step is needed.
+    runtime: docker
+    plan: free
+    healthCheckPath: /health/ready
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # One proxy hop in front of the app; with 0 every visitor shares one rate-limit bucket.
+      - key: TRUST_PROXY
+        value: '1'
+      # Set in the Render dashboard: the Postgres connection string, with sslmode=require.
+      - key: DATABASE_URL
+        sync: false

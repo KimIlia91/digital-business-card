@@ -13,7 +13,7 @@ export type DatabaseEnv = z.infer<typeof databaseEnvSchema>;
 
 export const MAX_TRUST_PROXY_HOPS = 3;
 
-const TRUST_PROXY_MESSAGE = `TRUST_PROXY must be the number of proxy hops in front of the app: 0 (no proxy) to ${MAX_TRUST_PROXY_HOPS}, 1 on Railway. "true" and proxy lists are rejected: a client could then spoof X-Forwarded-For and bypass the rate limit.`;
+const TRUST_PROXY_MESSAGE = `TRUST_PROXY must be the number of proxy hops in front of the app: 0 (no proxy) to ${MAX_TRUST_PROXY_HOPS}, 1 on Render. "true" and proxy lists are rejected: a client could then spoof X-Forwarded-For and bypass the rate limit.`;
 
 /**
  * Express `trust proxy` as a hop count. Booleans, named ranges and IP lists are
