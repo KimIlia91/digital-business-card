@@ -200,7 +200,7 @@ export const profileData = {
       name: 'Цифровая визитка',
       description:
         'Этот проект: GraphQL API на NestJS, Prisma и PostgreSQL с Apollo Sandbox, Docker и автоматической инициализацией базы данных.',
-      url: 'https://digital-business-card-0qn8.onrender.com',
+      url: 'https://digital-business-card-nl4y.onrender.com',
       repositoryUrl: 'https://github.com/KimIlia91/digital-business-card',
       technologies: [
         'TypeScript',
