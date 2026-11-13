@@ -1,0 +1,134 @@
+// Lists have an explicit `sort_order`, so order comes from the content, not from
+// insertion order. Children are deleted with their profile (ON DELETE CASCADE).
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  // Explicit: the client is also generated where tsconfig.json is not available yet (Docker build).
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum LinkKind {
+  GITHUB
+  LINKEDIN
+  TELEGRAM
+  EMAIL
+  WEBSITE
+  OTHER
+
+  @@map("link_kind")
+}
+
+enum SkillCategory {
+  LANGUAGE
+  BACKEND
+  FRONTEND
+  DATABASE
+  API
+  INFRASTRUCTURE
+  TESTING
+  TOOLING
+  PRACTICE
+
+  @@map("skill_category")
+}
+
+model Profile {
+  id          Int      @id @default(autoincrement())
+  /// Format is enforced by CHECK profiles_slug_format (see the migration).
+  slug        String   @unique
+  /// Returned by `profile` when no slug is given. At most one owner is enforced
+  /// by the seed, because Prisma cannot express a partial unique index.
+  isOwner     Boolean  @default(false) @map("is_owner")
+  name        String
+  headline    String
+  description String
+  location    String?
+  avatarUrl   String?  @map("avatar_url")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  links       ProfileLink[]
+  skills      Skill[]
+  experiences Experience[]
+  projects    Project[]
+
+  @@map("profiles")
+}
+
+model ProfileLink {
+  id        Int      @id @default(autoincrement())
+  profileId Int      @map("profile_id")
+  kind      LinkKind
+  label     String
+  url       String
+  sortOrder Int      @default(0) @map("sort_order")
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, url])
+  @@index([profileId, sortOrder])
+  @@map("profile_links")
+}
+
+model Skill {
+  id        Int           @id @default(autoincrement())
+  profileId Int           @map("profile_id")
+  name      String
+  category  SkillCategory
+  sortOrder Int           @default(0) @map("sort_order")
+
+  profile     Profile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  experiences Experience[] @relation("experience_technologies")
+  projects    Project[]    @relation("project_technologies")
+
+  @@unique([profileId, name])
+  @@index([profileId, sortOrder])
+  @@map("skills")
+}
+
+model Experience {
+  id           Int       @id @default(autoincrement())
+  profileId    Int       @map("profile_id")
+  company      String
+  position     String
+  location     String?
+  startDate    DateTime  @map("start_date") @db.Date
+  /// NULL means the position is current. CHECK experiences_period_check
+  /// (hand-written in the migration) keeps it on or after start_date.
+  endDate      DateTime? @map("end_date") @db.Date
+  summary      String?
+  /// Always read together with the position, so stored inline instead of in a table.
+  achievements String[]  @default([])
+
+  profile      Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  technologies Skill[] @relation("experience_technologies")
+
+  /// Natural key: lets the seed update entries in place, keeping ids stable.
+  @@unique([profileId, company, position, startDate])
+  /// Display order: DESC sorts NULLs first in PostgreSQL, so current positions come first.
+  @@index([profileId, endDate(sort: Desc), startDate(sort: Desc)])
+  @@map("experiences")
+}
+
+model Project {
+  id            Int     @id @default(autoincrement())
+  profileId     Int     @map("profile_id")
+  name          String
+  description   String?
+  url           String?
+  repositoryUrl String? @map("repository_url")
+  sortOrder     Int     @default(0) @map("sort_order")
+
+  profile      Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  technologies Skill[] @relation("project_technologies")
+
+  @@unique([profileId, name])
+  @@index([profileId, sortOrder])
+  @@map("projects")
+}
