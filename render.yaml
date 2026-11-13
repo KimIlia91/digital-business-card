@@ -5,6 +5,9 @@ services:
     # the seed on every start, so no separate release step is needed.
     runtime: docker
     plan: free
+    # Same region as the database; the default is oregon, which puts every
+    # query across the Atlantic. It cannot be changed after the service exists.
+    region: frankfurt
     healthCheckPath: /health/ready
     envVars:
       - key: NODE_ENV
