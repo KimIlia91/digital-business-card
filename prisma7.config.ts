@@ -5,7 +5,7 @@ import { defineConfig } from 'prisma/config';
  * Prisma 7 no longer reads `.env` itself; load it locally (containers use real
  * environment variables). The datasource URL is not wrapped in `env()` so that
  * `prisma generate` works without a database, e.g. in the Docker build stage.
- * Production runs the compiled seed from docker/entrypoint.sh, not `tsx`.
+ * Production runs the compiled seed from scripts/entrypoint.sh, not `tsx`.
  */
 if (existsSync('.env')) {
   process.loadEnvFile('.env');

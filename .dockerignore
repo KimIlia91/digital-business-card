@@ -1,0 +1,21 @@
+# Rebuilt inside the image
+node_modules
+dist
+src/generated
+*.tsbuildinfo
+
+# Secrets, local environment and machine-specific files
+.env
+.env.*
+**/*.local
+**/*.local.*
+
+# Not needed to build the application
+.git
+.github
+coverage
+test
+*.log
+docker-compose.yml
+Dockerfile
+.dockerignore

@@ -1,0 +1,48 @@
+# Local use only: the credentials are development defaults.
+
+name: digital-business-card
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-card}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-card}
+      POSTGRES_DB: ${POSTGRES_DB:-card}
+    ports:
+      # Loopback only: the database is never exposed to the network.
+      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      # PostgreSQL 18 images keep data under /var/lib/postgresql/<major>/
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test:
+        ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-card}:${POSTGRES_PASSWORD:-card}@db:5432/${POSTGRES_DB:-card}
+    ports:
+      - '${APP_PORT:-3000}:3000'
+    depends_on:
+      db:
+        condition: service_healthy
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  db-data:
