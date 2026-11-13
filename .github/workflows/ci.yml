@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Git hooks are for local commits only.
+  HUSKY: 0
+
+jobs:
+  check:
+    name: Lint, types and tests
+    runs-on: ubuntu-latest
+    steps:
+      # Actions are pinned to commit SHAs (tags are mutable); Dependabot updates them.
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      # postinstall generates the Prisma Client
+      - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      # Needs the runner's Docker (Testcontainers); also checks that schema.gql is current.
+      - run: npm run test:e2e
+      - run: npm run build
+
+  docker:
+    name: Start from scratch with Docker Compose
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - name: Build and start (waits for the readiness health check)
+        run: docker compose up --build --detach --wait --wait-timeout 180
+      - name: Query the business card
+        run: |
+          curl -fsS http://localhost:3000/graphql \
+            -H 'content-type: application/json' \
+            -d '{"query":"{ profile { name skills { name } experience { company } projects { name } } }"}' \
+            | tee response.json
+          # Each list must be non-empty: an empty one means a broken seed or loader.
+          grep -q '"profile":{"name"' response.json
+          grep -q '"skills":\[{"name"' response.json
+          grep -q '"experience":\[{"company"' response.json
+          grep -q '"projects":\[{"name"' response.json
+      - name: Container logs
+        if: always()
+        run: docker compose logs

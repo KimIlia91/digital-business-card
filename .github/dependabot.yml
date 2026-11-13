@@ -1,0 +1,43 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      nestjs:
+        patterns: ['@nestjs/*']
+      prisma:
+        patterns: ['prisma', '@prisma/*']
+      graphql:
+        patterns:
+          [
+            '@apollo/*',
+            '@as-integrations/*',
+            'graphql',
+            'graphql-*',
+            'dataloader',
+          ]
+      dev-tooling:
+        dependency-type: development
+        update-types: [minor, patch]
+    ignore:
+      # Prisma 8 is a different CLI (no `migrate`/`generate`); upgrade deliberately.
+      - dependency-name: prisma
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@prisma/*'
+        update-types: ['version-update:semver-major']
+      # Apollo Server 5 supports graphql 16 only.
+      - dependency-name: graphql
+        update-types: ['version-update:semver-major']
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
