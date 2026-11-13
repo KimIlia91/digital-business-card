@@ -19,6 +19,10 @@ updates:
             'graphql-*',
             'dataloader',
           ]
+      # vitest and its coverage package must move together, majors included:
+      # a version mismatch between them fails `npm ci` before any test runs.
+      vitest:
+        patterns: ['vitest', '@vitest/*']
       dev-tooling:
         dependency-type: development
         update-types: [minor, patch]
@@ -30,6 +34,13 @@ updates:
         update-types: ['version-update:semver-major']
       # Apollo Server 5 supports graphql 16 only.
       - dependency-name: graphql
+        update-types: ['version-update:semver-major']
+      # TypeScript 7 is a rewrite the Nest CLI build does not handle yet.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
+      # Node typings must track the runtime in .nvmrc and the Dockerfile,
+      # or code compiles against APIs the deployed Node does not have.
+      - dependency-name: '@types/node'
         update-types: ['version-update:semver-major']
 
   - package-ecosystem: docker
